@@ -29,8 +29,8 @@ u32 compile_shader(const char *path, GLenum shader_type) {
     int compiled = 0;
     char log[512] = {0};
     glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
-
     if (!compiled) {
+        glGetShaderInfoLog(shader, 512, NULL, log);
         fprintf(stderr, "error compiling %s. error: %s", shader_type == GL_FRAGMENT_SHADER ? "fragment shader"
                                                                                            : "vertex shader", log);
         exit(1);
@@ -40,10 +40,24 @@ u32 compile_shader(const char *path, GLenum shader_type) {
     return shader;
 }
 
-Shader create_shader() {
-    Shader shader = {0};
+Shader create_shader(const char *vs_path, const char *fs_path) {
+    Shader shader;
+    
+    shader.vs = compile_shader(vs_path, GL_VERTEX_SHADER);
+    shader.fs = compile_shader(fs_path, GL_FRAGMENT_SHADER);
+    shader.program = glCreateProgram();
+    glAttachShader(shader.program, shader.vs);
+    glAttachShader(shader.program, shader.fs);
+    glLinkProgram(shader.program);
+
+    i32 compiled = 0;
+    char log[512] = {0};
+    glGetProgramiv(shader.program, GL_LINK_STATUS, &compiled);
+    if (!compiled) {
+        glGetProgramInfoLog(shader.program, 512, NULL, log);
+        fprintf(stderr, "error linking shader program. error: %s", log);
+        exit(1);
+    }
 
     return shader;
 }
-
-

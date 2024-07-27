@@ -1,11 +1,16 @@
 #include "defs.h"
 #include "shader.h"
+#include <SDL3/SDL_events.h>
+#include <SDL3/SDL_oldnames.h>
+#include <SDL3/SDL_video.h>
 
 struct {
     SDL_Window    *window;
     SDL_Renderer  *renderer;
     SDL_GLContext ctx;
     bool running;
+    Shader *shaders;
+    size_t shaders_size;
 } sdl;
 
 typedef struct {
@@ -71,12 +76,16 @@ void init_renderer(const char *win_title, int win_w, int win_h) {
     glGenBuffers(1, &vbo);
     glGenBuffers(1, &ebo);
 
+    sdl.shaders_size = 0;
+    sdl.shaders = realloc(sdl.shaders, sizeof(Shader) * (sdl.shaders_size+1));
+    sdl.shaders[sdl.shaders_size] = create_shader("shaders/basic_color.vs", "shaders/basic_color.fs");
+
     SDL_ShowWindow(sdl.window);
 
     sdl.running = true;
 }
 
-void render_rect(rect2d rect, bool wireframe) {
+void render_rect_color(rect2d rect, bool wireframe) {
     float v[] = {
         rect.x,         rect.y,        0.0f,
         rect.x+rect.w,  rect.y,        0.0f,
@@ -88,6 +97,9 @@ void render_rect(rect2d rect, bool wireframe) {
         0, 1, 2, 
         2, 1, 3,
     };
+
+    glUseProgram(sdl.shaders[0].program);
+    glUniform4f(glGetUniformLocation(sdl.shaders[0].program, "color"), sinf(SDL_GetTicks()/1000.0f), 0.5f, 0.0f, 1.0f);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
@@ -106,10 +118,10 @@ void render_rect(rect2d rect, bool wireframe) {
 int main(int argc, char *argv[]) {
     init_renderer("window", win_w, win_h);
 
-    unsigned int program = glCreateProgram();
-    glAttachShader(program, compile_shader("shaders/basic_color.vs", GL_VERTEX_SHADER));
-    glAttachShader(program, compile_shader("shaders/basic_color.fs", GL_FRAGMENT_SHADER));
-    glLinkProgram(program); 
+//  unsigned int program = glCreateProgram();
+//  glAttachShader(program, compile_shader("shaders/basic_color.vs", GL_VERTEX_SHADER));
+//  glAttachShader(program, compile_shader("shaders/basic_color.fs", GL_FRAGMENT_SHADER));
+//  glLinkProgram(program); 
 
     while (sdl.running) {
         SDL_Event event;
@@ -121,6 +133,9 @@ int main(int argc, char *argv[]) {
 
         if (event.type == SDL_EVENT_QUIT) {
             sdl.running = false;
+        }
+        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+            SDL_GetWindowSize(sdl.window, &win_w, &win_h);
         }
         if (state[SDL_SCANCODE_UP]) {
             y += 0.002;
@@ -149,9 +164,9 @@ int main(int argc, char *argv[]) {
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glUseProgram(program);
-        render_rect(rect2, false);
-        render_rect(rect, true);
+//      glUseProgram(program);
+        render_rect_color(rect2, false);
+        render_rect_color(rect, true);
         SDL_GL_SwapWindow(sdl.window);
     }
 
