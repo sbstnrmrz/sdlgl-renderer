@@ -84,13 +84,10 @@ void render_rect(rect2d rect, bool wireframe) {
         rect.x+rect.w,  rect.y+rect.w, 0.0f,
     };
 
-    unsigned int ind[] = {
+    u32 indexes[] = {
         0, 1, 2, 
         2, 1, 3,
     };
-
- // glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
- // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ind), ind, GL_DYNAMIC_DRAW);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
@@ -100,7 +97,7 @@ void render_rect(rect2d rect, bool wireframe) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(ind), ind, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_DYNAMIC_DRAW);
 
     glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
@@ -108,47 +105,6 @@ void render_rect(rect2d rect, bool wireframe) {
 
 int main(int argc, char *argv[]) {
     init_renderer("window", win_w, win_h);
-
-//  float vertices[] = {
-//      -0.5f, 0.0f, 0.0f,
-//       0.0f, 0.5f, 0.0f,
-//       0.5f, 0.0f, 0.0f,
-//       0.0f, 0.5f, 0.0f,
-//       0.5f, 0.5f, 0.0f,
-//       0.5f, 0.0f, 0.0f,
-//  };
-
-//  glGenVertexArrays(1, &vao);
-//  glBindVertexArray(vao);
-//  
-//  glGenBuffers(1, &vbo);
-//  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
-//  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-//  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), NULL);
-//  glEnableVertexAttribArray(0);
-
-//  const char *vertex_shader_src = "#version 330 core\n"
-//      "layout (location = 0) in vec3 aPos;\n"
-//      "void main()\n"
-//      "{\n"
-//      "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-//      "}\0";
-
-//  unsigned int vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-//  glShaderSource(vertex_shader, 1, &vertex_shader_src, NULL);
-//  glCompileShader(vertex_shader);
-
-//  const char *fragment_shader_src = "#version 330 core\n"
-//      "out vec4 FragColor;\n"
-//      "void main()\n"
-//      "{\n"
-//      "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-//      "}\n\0";
-
-//  unsigned int fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-//  glShaderSource(fragment_shader, 1, &fragment_shader_src, NULL);
-//  glCompileShader(fragment_shader);
 
     unsigned int program = glCreateProgram();
     glAttachShader(program, compile_shader("shaders/basic_color.vs", GL_VERTEX_SHADER));
