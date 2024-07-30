@@ -29,6 +29,12 @@ typedef struct {
 } rrect;
 
 typedef struct {
+    f32 cx;
+    f32 cy;
+    f32 r;
+} ccircle;
+
+typedef struct {
     u32 id;
     u32 format;
     i32 channels; 
@@ -39,8 +45,10 @@ typedef struct {
 rrenderer init_renderer(const char *win_title, int win_w, int win_h);
 void uninit_renderer(rrenderer *renderer);
 texture load_texture(const char *img_file);
-void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf);
+void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool wf);
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex);
+void normalize_rect(rrenderer, rrect *rect);
+void render_cicle(rrenderer renderer, ccircle circle, color_rgb color, bool wf);
 void shader_uniform_vec4(u32 shader_program, color_rgb color);
 
 #endif // RENDERER_H

@@ -95,12 +95,20 @@ void shader_uniform_vec4(u32 shader_program, color_rgb color) {
                 RGB2F(255));
 }
 
-void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
+void normalize_rect(rrenderer renderer, rrect *rect) {
+    rect->w /= (f32)renderer.win_w; 
+    rect->h /= (f32)renderer.win_h; 
+    rect->x += -1.f; 
+    rect->y += 1.f; 
+}
+
+void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
+    normalize_rect(renderer, &rect);
     float v[] = {
         rect.x,         rect.y,        1.0f,
         rect.x+rect.w,  rect.y,        1.0f,
-        rect.x,         rect.y+rect.h, 1.0f,
-        rect.x+rect.w,  rect.y+rect.w, 1.0f,
+        rect.x,         rect.y-rect.h, 1.0f,
+        rect.x+rect.w,  rect.y-rect.h, 1.0f,
     };
 
     u32 indexes[] = {
@@ -129,15 +137,16 @@ void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
 }
 
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
+    normalize_rect(renderer, &rect);
     float v[] = {
         rect.x, rect.y, 1.0f, 
-        0.0f, 1.0f, 
-        rect.x+rect.w, rect.y, 1.0f, 
-        1.0f, 1.0f, 
-        rect.x, rect.y+rect.h, 1.0f, 
-        0.0f, 0.0f, 
-        rect.x+rect.w, rect.y+rect.w, 1.0f, 
         1.0f, 0.0f, 
+        rect.x+rect.w, rect.y, 1.0f, 
+        0.0f, 0.0f, 
+        rect.x, rect.y-rect.h, 1.0f, 
+        1.0f, 1.0f, 
+        rect.x+rect.w, rect.y-rect.h, 1.0f, 
+        0.0f, 1.0f, 
     };
 
     u32 indexes[] = {
@@ -170,6 +179,10 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
     glBindVertexArray(renderer.vao);
 
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+}
+
+void render_cicle(rrenderer renderer, ccircle circle, color_rgb color, bool wf) {
+
 }
  
 texture load_texture(const char *img_file) {

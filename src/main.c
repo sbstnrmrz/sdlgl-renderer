@@ -1,7 +1,6 @@
 #include "defs.h"
 #include "renderer.h"
 
-
 rrenderer renderer = {0};
 
 int win_w = 800;
@@ -23,7 +22,8 @@ int main(int argc, char *argv[]) {
             renderer.initd = false;
         }
         if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-            SDL_GetWindowSize(renderer.window, &win_w, &win_h);
+            SDL_GetWindowSize(renderer.window, &renderer.win_w, &renderer.win_h);
+            glViewport(0, 0, renderer.win_w, renderer.win_h);
         }
         if (state[SDL_SCANCODE_UP]) {
             y += 0.002;
@@ -38,22 +38,23 @@ int main(int argc, char *argv[]) {
             x += 0.002;
         }
         rrect rect = {
-            .x = x,
-            .y = y,
-            .w = 0.5,
-            .h = 0.5,
-        };
-        rrect rect2 = {
             .x = 0,
             .y = 0,
-            .w = 0.5,
-            .h = 0.5,
+            .w = 200,
+            .h = 200,
+        };
+        rrect rect2 = {
+            .x = x,
+            .y = y,
+            .w = 32,
+            .h = 32,
         };
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
+        render_rect_color(renderer, rect2, COLOR_RED, false);
         render_rect_texture(renderer, rect, tex);
-//      render_rect(renderer, rect2, COLOR_RED, false);
+
 //      render_rect(renderer, rect, COLOR_BLUE, true);
         SDL_GL_SwapWindow(renderer.window);
     }
