@@ -11,6 +11,7 @@
 #include <SDL3/SDL_opengl.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
+#include "stb_image.h"
 
 typedef uint8_t  u8;
 typedef uint16_t u16;
@@ -22,6 +23,7 @@ typedef int32_t  i32;
 typedef int64_t  i64;
 typedef float    f32;
 typedef double   f64;
+typedef unsigned char byte;
 
 typedef struct {
     u32 vs;
@@ -31,8 +33,8 @@ typedef struct {
 
 typedef struct {
     SDL_Window    *window;
-    i32            win_w;
-    i32            win_h;
+    i32           win_w;
+    i32           win_h;
     SDL_GLContext gl_ctx;
     Shader        *shaders;
     size_t        shaders_size;

@@ -1,6 +1,6 @@
 #include "defs.h"
-#include "shader.h"
 #include "renderer.h"
+
 
 rrenderer renderer = {0};
 
@@ -9,6 +9,7 @@ int win_h = 600;
 
 int main(int argc, char *argv[]) {
     rrenderer renderer = init_renderer("window", win_w, win_h);
+    texture tex = load_texture("awesomeface.png");
 
     while (renderer.initd) {
         SDL_Event event;
@@ -51,8 +52,9 @@ int main(int argc, char *argv[]) {
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        render_rect(renderer, rect2, COLOR_RED, false);
-        render_rect(renderer, rect, COLOR_BLUE, true);
+        render_rect_texture(renderer, rect, tex);
+//      render_rect(renderer, rect2, COLOR_RED, false);
+//      render_rect(renderer, rect, COLOR_BLUE, true);
         SDL_GL_SwapWindow(renderer.window);
     }
 

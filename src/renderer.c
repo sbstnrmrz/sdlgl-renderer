@@ -1,4 +1,7 @@
+#define STB_IMAGE_IMPLEMENTATION
 #include "renderer.h"
+#include "defs.h"
+#include "shader.h"
 
 rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     rrenderer renderer = {0};
@@ -60,6 +63,11 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     renderer.shaders_size = 0;
     renderer.shaders = realloc(renderer.shaders, sizeof(Shader) * (renderer.shaders_size+1));
     renderer.shaders[renderer.shaders_size] = create_shader("shaders/basic_color.vs", "shaders/basic_color.fs");
+    renderer.shaders_size++;
+
+    renderer.shaders = realloc(renderer.shaders, sizeof(Shader) * (renderer.shaders_size+1));
+    renderer.shaders[renderer.shaders_size] = create_shader("shaders/basic_texture.vs", "shaders/basic_texture.fs");
+    renderer.shaders_size++;
 
     SDL_ShowWindow(renderer.window);
 
@@ -86,10 +94,10 @@ void shader_uniform_vec4(u32 shader_program, color_rgb color) {
 
 void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
     float v[] = {
-        rect.x,         rect.y,        0.0f,
-        rect.x+rect.w,  rect.y,        0.0f,
-        rect.x,         rect.y+rect.h, 0.0f,
-        rect.x+rect.w,  rect.y+rect.w, 0.0f,
+        rect.x,         rect.y,        1.0f,
+        rect.x+rect.w,  rect.y,        1.0f,
+        rect.x,         rect.y+rect.h, 1.0f,
+        rect.x+rect.w,  rect.y+rect.w, 1.0f,
     };
 
     u32 indexes[] = {
@@ -97,15 +105,15 @@ void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
         2, 1, 3,
     };
 
-    glUseProgram(renderer.shaders[0].program);
+    glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
 //  glUniform4f(glGetUniformLocation(renderer.shaders[0].program, "color"), sinf(SDL_GetTicks()/1000.0f), 0.5f, 0.0f, 1.0f);
 //  glUniform4f(glGetUniformLocation(renderer.shaders[0].program, "color"), 
 //              RGB2F(255), RGB2F(0), RGB2F(0), RGB2F(255));
-    shader_uniform_vec4(renderer.shaders[0].program, color); 
+    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
+    glBindVertexArray(renderer.vao);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
     glEnableVertexAttribArray(0);
-    glBindVertexArray(renderer.vao);
 
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
@@ -115,4 +123,77 @@ void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
 
     glPolygonMode(GL_FRONT_AND_BACK, wf ? GL_LINE : GL_FILL);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+}
+
+void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
+    float v[] = {                            // uv       // color
+        rect.x,         rect.y,        1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f,
+        rect.x+rect.w,  rect.y,        1.0f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f,
+        rect.x,         rect.y+rect.h, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+        rect.x+rect.w,  rect.y+rect.w, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+    };
+
+    u32 indexes[] = {
+        0, 1, 2, 
+        2, 1, 3,
+    };
+
+//  shader_uniform_vec4(renderer.shaders[0].program, color); 
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+    glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(f32)));
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(f32)));
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_DYNAMIC_DRAW);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex.id);
+
+    glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
+    glBindVertexArray(renderer.vao);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+}
+ 
+texture load_texture(const char *img_file) {
+    if (!stbi_info(img_file, 0, 0, 0)) {
+        fprintf(stderr, "file %s is not supported\n", img_file);
+        exit(1);
+    }
+
+    texture tex = {0};
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+
+    unsigned char *data = stbi_load(img_file, &width, &height, &channels, 0);
+    if (data == NULL) {
+        fprintf(stderr, "error loading image: %s\n", img_file);
+        exit(1);
+    }
+
+    glGenTextures(1, &tex.id);
+    glBindTexture(GL_TEXTURE_2D, tex.id);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //check
+    //
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    stbi_image_free(data);
+    printf("texture from image: %s created\n", img_file);
+
+    return tex;
 }

@@ -28,9 +28,17 @@ typedef struct {
     f32 h; 
 } rrect;
 
+typedef struct {
+    u32 id;
+    i32 width;
+    i32 height;
+} texture;
+
 rrenderer init_renderer(const char *win_title, int win_w, int win_h);
 void uninit_renderer(rrenderer *renderer);
+texture load_texture(const char *img_file);
 void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf);
+void render_rect_texture(rrenderer renderer, rrect rect, texture tex);
 void shader_uniform_vec4(u32 shader_program, color_rgb color);
 
 #endif // RENDERER_H

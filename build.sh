@@ -22,13 +22,12 @@ pause"
 
 echo -e $BAT > build_win.bat
 
-LIBS+=" -lGL"
 if [ `uname` = "Darwin" ]; then
     FRAMEWORKS+="-framework OpenGL"
     RPATH+="-rpath $LDIR"
 fi
 if [ `uname` = "Linux" ]; then
-    LIBS+=" -lpthread -ldl"
+    LIBS+=" -lGL -lpthread -ldl"
 fi
 
 $CC $CCFLAGS $SRC -o $EXE -I$IDIR -L$LDIR $LIBS $FRAMEWORKS $RPATH 
