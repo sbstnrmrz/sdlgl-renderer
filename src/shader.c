@@ -36,6 +36,7 @@ u32 compile_shader(const char *path, GLenum shader_type) {
         exit(1);
     }
     free(str);
+    printf("shader from: %s compiled\n", path);
 
     return shader;
 }

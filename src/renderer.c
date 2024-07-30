@@ -17,10 +17,10 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     SDL_SetHint(SDL_HINT_IME_IMPLEMENTED_UI, "1");
 
     renderer.window = SDL_CreateWindow(win_title, 
-            win_w, win_h, 
-            SDL_WINDOW_OPENGL | 
-            SDL_WINDOW_RESIZABLE | 
-            SDL_WINDOW_HIDDEN);
+                                       win_w, win_h, 
+                                       SDL_WINDOW_OPENGL | 
+                                       SDL_WINDOW_RESIZABLE | 
+                                       SDL_WINDOW_HIDDEN);
 
     if (renderer.window == NULL) {
         fprintf(stderr, "Failed to create SDL_Window. SDL_Error: %s\n", SDL_GetError());
@@ -39,6 +39,7 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
     renderer.gl_ctx = SDL_GL_CreateContext(renderer.window);
     if (renderer.gl_ctx == NULL) {
         fprintf(stderr, "Failed to create GL_Context. SDL_Error: %s\n", SDL_GetError());
@@ -55,6 +56,8 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     SDL_GL_MakeCurrent(renderer.window,  renderer.gl_ctx);
     SDL_GL_SetSwapInterval(1);
     glViewport(0, 0, win_w, win_h);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glGenVertexArrays(1, &renderer.vao);
     glGenBuffers(1, &renderer.vbo);
@@ -126,11 +129,15 @@ void render_rect(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
 }
 
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
-    float v[] = {                            // uv       // color
-        rect.x,         rect.y,        1.0f, 1.0f, 1.0f, 0.5f, 0.5f, 0.5f,
-        rect.x+rect.w,  rect.y,        1.0f, 0.0f, 1.0f, 0.5f, 0.5f, 0.5f,
-        rect.x,         rect.y+rect.h, 1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f,
-        rect.x+rect.w,  rect.y+rect.w, 1.0f, 0.0f, 0.0f, 0.5f, 0.5f, 0.5f,
+    float v[] = {
+        rect.x, rect.y, 1.0f, 
+        0.0f, 1.0f, 
+        rect.x+rect.w, rect.y, 1.0f, 
+        1.0f, 1.0f, 
+        rect.x, rect.y+rect.h, 1.0f, 
+        0.0f, 0.0f, 
+        rect.x+rect.w, rect.y+rect.w, 1.0f, 
+        1.0f, 0.0f, 
     };
 
     u32 indexes[] = {
@@ -138,16 +145,17 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
         2, 1, 3,
     };
 
-//  shader_uniform_vec4(renderer.shaders[0].program, color); 
+    // check if white alters the original texture color
+    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_TEXTURE].program, COLOR_WHITE); 
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(f32)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(f32)));
     glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(f32)));
-    glEnableVertexAttribArray(2);
+//  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(f32)));
+//  glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
@@ -171,11 +179,9 @@ texture load_texture(const char *img_file) {
     }
 
     texture tex = {0};
-    int width = 0;
-    int height = 0;
     int channels = 0;
 
-    unsigned char *data = stbi_load(img_file, &width, &height, &channels, 0);
+    unsigned char *data = stbi_load(img_file, &tex.width, &tex.height, &channels, 0);
     if (data == NULL) {
         fprintf(stderr, "error loading image: %s\n", img_file);
         exit(1);
@@ -189,7 +195,7 @@ texture load_texture(const char *img_file) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     //check
     //
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tex.width, tex.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     stbi_image_free(data);

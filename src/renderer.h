@@ -30,6 +30,8 @@ typedef struct {
 
 typedef struct {
     u32 id;
+    u32 format;
+    i32 channels; 
     i32 width;
     i32 height;
 } texture;
