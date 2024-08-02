@@ -12,50 +12,65 @@ int main(int argc, char *argv[]) {
 
     while (renderer.initd) {
         SDL_Event event;
-        SDL_PollEvent(&event);
-        const uint8_t *state = SDL_GetKeyboardState(NULL);
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_EVENT_QUIT) {
+                renderer.initd = false;
+            }
+            if (event.type == SDL_EVENT_WINDOW_RESIZED) {
+                SDL_GetWindowSize(renderer.window, &renderer.win_w, &renderer.win_h);
+                glViewport(0, 0, renderer.win_w, renderer.win_h);
+            }
+
+        }
+        const u8 *state = SDL_GetKeyboardState(NULL);
 
         static float x = 0;
         static float y = 0;
 
-        if (event.type == SDL_EVENT_QUIT) {
-            renderer.initd = false;
-        }
-        if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-            SDL_GetWindowSize(renderer.window, &renderer.win_w, &renderer.win_h);
-            glViewport(0, 0, renderer.win_w, renderer.win_h);
-        }
         if (state[SDL_SCANCODE_UP]) {
-            y += 0.002;
+            y -= 1;
         }
         if (state[SDL_SCANCODE_DOWN]) {
-            y -= 0.002;
+            y += 1;
         }
         if (state[SDL_SCANCODE_LEFT]) {
-            x -= 0.002;
+            x -= 1;
         }
         if (state[SDL_SCANCODE_RIGHT]) {
-            x += 0.002;
+            x += 1;
         }
+        static f32 x1 = 0;
+        static f32 y1 = 0;
         rrect rect = {
-            .x = 0,
-            .y = 0,
+            .x = x1,
+            .y = y1,
             .w = 200,
             .h = 200,
         };
+
+        x1 += 5;
+        y1 += 5;
+//      printf("x: %.2f | y: %.2f\n", x, y);
+//      printf("win_w: %d | win_h: %d\n", renderer.win_w, renderer.win_h);
+        if (x1 <= 0 || x1 >= renderer.win_w) {
+            x1 *= -1; 
+        }
+        if (y1 <= 0 || y1+200 >= renderer.win_h) {
+            y1 *= -1; 
+        }
+
         rrect rect2 = {
-            .x = x,
-            .y = y,
-            .w = 32,
-            .h = 32,
+            .x = 400 + x,
+            .y = 300 + y,
+            .w = 1,
+            .h = 1,
         };
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        render_rect_color(renderer, rect2, COLOR_RED, false);
+        render_rect_color(renderer, rect2, COLOR_RED, true);
         render_rect_texture(renderer, rect, tex);
 
-//      render_rect(renderer, rect, COLOR_BLUE, true);
         SDL_GL_SwapWindow(renderer.window);
     }
 

@@ -42,7 +42,7 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
 
     renderer.gl_ctx = SDL_GL_CreateContext(renderer.window);
     if (renderer.gl_ctx == NULL) {
-        fprintf(stderr, "Failed to create GL_Context. SDL_Error: %s\n", SDL_GetError());
+        fprintf(stderr, "Failed to create GL Context. SDL_Error: %s\n", SDL_GetError());
         exit(1);
     }
     printf("glContext created\n");
@@ -81,7 +81,7 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
 
 void uninit_renderer(rrenderer *renderer) {
     SDL_GL_DestroyContext(renderer->gl_ctx);
-    printf("glContext destroyed\n");
+    printf("GL context destroyed\n");
     SDL_DestroyWindow(renderer->window);
     printf("SDL_Window destroyed\n");
     SDL_Quit();
@@ -95,20 +95,27 @@ void shader_uniform_vec4(u32 shader_program, color_rgb color) {
                 RGB2F(255));
 }
 
+void shader_uniform_mat4(u32 shader_program, mat4 proj_mat) {
+    glUniformMatrix4fv(glGetUniformLocation(shader_program, "p"), 
+                       1, 
+                       GL_FALSE, 
+                       (const GLfloat*)proj_mat);
+}
+
 void normalize_rect(rrenderer renderer, rrect *rect) {
     rect->w /= (f32)renderer.win_w; 
     rect->h /= (f32)renderer.win_h; 
-    rect->x += -1.f; 
-    rect->y += 1.f; 
+    rect->x = -1.f + rect->x * 0.00125; 
+    rect->y = 1.f - rect->y * 0.00125; 
+
 }
 
-void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool wf) {
-    normalize_rect(renderer, &rect);
-    float v[] = {
-        rect.x,         rect.y,        1.0f,
-        rect.x+rect.w,  rect.y,        1.0f,
-        rect.x,         rect.y-rect.h, 1.0f,
-        rect.x+rect.w,  rect.y-rect.h, 1.0f,
+void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill) {
+    vec3 vertices[] = {
+        {rect.x,        rect.y,        0.0f},
+        {rect.x+rect.w, rect.y,        0.0f},
+        {rect.x,        rect.y-rect.h, 0.0f},
+        {rect.x+rect.w, rect.y-rect.h, 0.0f},
     };
 
     u32 indexes[] = {
@@ -117,22 +124,25 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool wf)
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
-//  glUniform4f(glGetUniformLocation(renderer.shaders[0].program, "color"), sinf(SDL_GetTicks()/1000.0f), 0.5f, 0.0f, 1.0f);
-//  glUniform4f(glGetUniformLocation(renderer.shaders[0].program, "color"), 
-//              RGB2F(255), RGB2F(0), RGB2F(0), RGB2F(255));
+
+    mat4 proj_mat = {0};
+    glm_ortho(0, renderer.win_w, renderer.win_h, 0, -1.f, 1.f, proj_mat);
+
     shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
+    shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, proj_mat); 
+
     glBindVertexArray(renderer.vao);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), NULL);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_DYNAMIC_DRAW);
 
-    glPolygonMode(GL_FRONT_AND_BACK, wf ? GL_LINE : GL_FILL);
+    glPolygonMode(GL_FRONT_AND_BACK, fill ? GL_FILL : GL_LINE);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 }
 
@@ -178,6 +188,7 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
     glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
     glBindVertexArray(renderer.vao);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 }
 
