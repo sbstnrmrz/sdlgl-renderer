@@ -52,7 +52,6 @@ texture load_texture(const char *img_file);
 void render_line(rrenderer renderer, lline line, color_rgb color);
 void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill);
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex);
-void normalize_rect(rrenderer, rrect *rect);
 void render_cicle(rrenderer renderer, ccircle circle, color_rgb color, bool wf);
 void shader_uniform_vec4(u32 shader_program, color_rgb color);
 void shader_uniform_mat4(u32 shader_program, mat4 proj_mat);

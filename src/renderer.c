@@ -26,6 +26,7 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
         exit(1);
     }
     printf("SDL_Window created\n");
+//  SDL_SetWindowBordered(renderer.window, false);
 
 #if defined(__APPLE__)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -102,21 +103,12 @@ void shader_uniform_mat4(u32 shader_program, mat4 proj_mat) {
                        (const GLfloat*)proj_mat);
 }
 
-void normalize_rect(rrenderer renderer, rrect *rect) {
-    rect->w /= (f32)renderer.win_w; 
-    rect->h /= (f32)renderer.win_h; 
-    rect->x = -1.f + rect->x * 0.00125; 
-    rect->y = 1.f - rect->y * 0.00125; 
-
-}
-
 void render_line(rrenderer renderer, lline line, color_rgb color) {
     u32 indexes[] = {
         0, 1,
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
-
     shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
     shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
 
@@ -136,11 +128,11 @@ void render_line(rrenderer renderer, lline line, color_rgb color) {
 }
 
 void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill) {
-    vec3 vertices[] = {
+    vec3 v[] = {
         {rect.x,        rect.y,        0.0f},
         {rect.x+rect.w, rect.y,        0.0f},
-        {rect.x,        rect.y-rect.h, 0.0f},
-        {rect.x+rect.w, rect.y-rect.h, 0.0f},
+        {rect.x,        rect.y+rect.h, 0.0f},
+        {rect.x+rect.w, rect.y+rect.h, 0.0f},
     };
 
     u32 indexes[] = {
@@ -149,7 +141,6 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
-
     shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
     shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
 
@@ -159,7 +150,7 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(v), v, GL_DYNAMIC_DRAW);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_DYNAMIC_DRAW);
@@ -169,15 +160,14 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
 }
 
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
-    normalize_rect(renderer, &rect);
     float v[] = {
-        rect.x, rect.y, 1.0f, 
+        rect.x, rect.y, 0.0f, 
         1.0f, 0.0f, 
-        rect.x+rect.w, rect.y, 1.0f, 
+        rect.x+rect.w, rect.y, 0.0f, 
         0.0f, 0.0f, 
-        rect.x, rect.y-rect.h, 1.0f, 
+        rect.x, rect.y+rect.h, 0.0f, 
         1.0f, 1.0f, 
-        rect.x+rect.w, rect.y-rect.h, 1.0f, 
+        rect.x+rect.w, rect.y+rect.h, 0.0f, 
         0.0f, 1.0f, 
     };
 
@@ -186,8 +176,11 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
         2, 1, 3,
     };
 
-    // check if white alters the original texture color
+    glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
     shader_uniform_vec4(renderer.shaders[SHADER_BASIC_TEXTURE].program, COLOR_WHITE); 
+    shader_uniform_mat4(renderer.shaders[SHADER_BASIC_TEXTURE].program, renderer.ortho_proj_mat); 
+
+    glBindVertexArray(renderer.vao);
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
     glEnableVertexAttribArray(0);
@@ -206,9 +199,6 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex.id);
-
-    glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
-    glBindVertexArray(renderer.vao);
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);

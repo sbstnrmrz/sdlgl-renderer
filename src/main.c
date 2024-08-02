@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
         static f32 x1 = 0;
         static f32 y1 = 0;
         rrect rect = {
-            .x = x1,
-            .y = y1,
-            .w = 200,
-            .h = 200,
+            .x = 0,
+            .y = 0,
+            .w = 100,
+            .h = 100,
         };
 
         x1 += 5;
@@ -61,10 +61,10 @@ int main(int argc, char *argv[]) {
         }
 
         rrect rect2 = {
-            .x = 400 + x,
-            .y = 300 + y,
-            .w = 2,
-            .h = 2,
+            .x = 0 + x,
+            .y = 0 + y,
+            .w = 4,
+            .h = 4,
         };
 
         lline line = {
