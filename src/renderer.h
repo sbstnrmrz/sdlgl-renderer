@@ -29,6 +29,10 @@ typedef struct {
 } rrect;
 
 typedef struct {
+    vec3 p[2];
+} lline;
+
+typedef struct {
     f32 cx;
     f32 cy;
     f32 r;
@@ -45,6 +49,7 @@ typedef struct {
 rrenderer init_renderer(const char *win_title, int win_w, int win_h);
 void uninit_renderer(rrenderer *renderer);
 texture load_texture(const char *img_file);
+void render_line(rrenderer renderer, lline line, color_rgb color);
 void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill);
 void render_rect_texture(rrenderer renderer, rrect rect, texture tex);
 void normalize_rect(rrenderer, rrect *rect);

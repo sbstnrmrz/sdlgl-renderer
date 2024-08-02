@@ -21,7 +21,6 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
                                        SDL_WINDOW_OPENGL | 
                                        SDL_WINDOW_RESIZABLE | 
                                        SDL_WINDOW_HIDDEN);
-
     if (renderer.window == NULL) {
         fprintf(stderr, "Failed to create SDL_Window. SDL_Error: %s\n", SDL_GetError());
         exit(1);
@@ -58,6 +57,7 @@ rrenderer init_renderer(const char *win_title, int win_w, int win_h) {
     glViewport(0, 0, win_w, win_h);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glm_ortho(0, renderer.win_w, renderer.win_h, 0, -1.f, 1.f, renderer.ortho_proj_mat);
 
     glGenVertexArrays(1, &renderer.vao);
     glGenBuffers(1, &renderer.vbo);
@@ -110,6 +110,31 @@ void normalize_rect(rrenderer renderer, rrect *rect) {
 
 }
 
+void render_line(rrenderer renderer, lline line, color_rgb color) {
+    u32 indexes[] = {
+        0, 1,
+    };
+
+    glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
+
+    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
+    shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
+
+    glBindVertexArray(renderer.vao);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(f32), 0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, renderer.vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(line), line.p, GL_DYNAMIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderer.ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indexes), indexes, GL_DYNAMIC_DRAW);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, NULL);
+}
+
 void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill) {
     vec3 vertices[] = {
         {rect.x,        rect.y,        0.0f},
@@ -125,11 +150,8 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
 
-    mat4 proj_mat = {0};
-    glm_ortho(0, renderer.win_w, renderer.win_h, 0, -1.f, 1.f, proj_mat);
-
     shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
-    shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, proj_mat); 
+    shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
 
     glBindVertexArray(renderer.vao);
 

@@ -52,6 +52,8 @@ typedef struct {
     u32           vbo;
     u32           ebo;
     bool          initd;
+    mat4          ortho_proj_mat;
+    mat4          pers_proj_mat;
 } rrenderer; 
 
 #endif // DEFS_H

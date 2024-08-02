@@ -19,6 +19,7 @@ int main(int argc, char *argv[]) {
             if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                 SDL_GetWindowSize(renderer.window, &renderer.win_w, &renderer.win_h);
                 glViewport(0, 0, renderer.win_w, renderer.win_h);
+                glm_ortho(0, renderer.win_w, renderer.win_h, 0, -1.f, 1.f, renderer.ortho_proj_mat);
             }
 
         }
@@ -62,13 +63,21 @@ int main(int argc, char *argv[]) {
         rrect rect2 = {
             .x = 400 + x,
             .y = 300 + y,
-            .w = 1,
-            .h = 1,
+            .w = 2,
+            .h = 2,
+        };
+
+        lline line = {
+            .p = {
+                400, 300, 0,
+                600, 400, 0
+            }
         };
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
         render_rect_color(renderer, rect2, COLOR_RED, true);
+        render_line(renderer, line, COLOR_RED);
         render_rect_texture(renderer, rect, tex);
 
         SDL_GL_SwapWindow(renderer.window);
