@@ -12,6 +12,7 @@
 #define COLOR_YELLOW (color_rgb) {255, 255, 0}
 #define COLOR_VIOLET (color_rgb) {255, 0, 255}
 #define COLOR_CYAN   (color_rgb) {0, 255, 255}
+#define COLOR_ORANGE (color_rgb) {255, 165, 0}
 #define COLOR_BLACK  (color_rgb) {0, 0, 0}
 #define COLOR_WHITE  (color_rgb) {255, 255, 255}
 
@@ -29,12 +30,6 @@ typedef struct {
     mat4          ortho_proj_mat;
     mat4          perspective_proj_mat;
 } rrenderer; 
-
-typedef struct {
-    u8 r;
-    u8 g;
-    u8 b;
-} color_rgb;
 
 typedef struct {
     f32 x; 
@@ -64,11 +59,13 @@ typedef struct {
 rrenderer init_renderer(const char *win_title, int win_w, int win_h);
 void uninit_renderer(rrenderer *renderer);
 texture load_texture(const char *img_file);
-void render_line(rrenderer renderer, lline line, color_rgb color);
-void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill);
-void render_rect_texture(rrenderer renderer, rrect rect, texture tex);
+void render_line(rrenderer renderer, lline line, color_rgb color, f32 alpha);
+void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, f32 alpha, bool fill);
+void render_rect_texture(rrenderer renderer, rrect rect, texture tex, f32 alpha);
 void render_cicle(rrenderer renderer, ccircle circle, color_rgb color, bool wf);
-void shader_uniform_vec4(u32 shader_program, color_rgb color);
-void shader_uniform_mat4(u32 shader_program, mat4 proj_mat);
+void shader_uniform_vec4(u32 shader_program, vec4 vec);
+void shader_uniform_mat4(u32 shader_program, mat4 mat);
+void clear_screen(color_rgb clear_color);
+vec4s color_to_vec4(color_rgb color, f32 alpha);
 
 #endif // RENDERER_H

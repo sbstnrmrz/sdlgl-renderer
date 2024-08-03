@@ -1,5 +1,6 @@
 #include "shader.h"
 #include "defs.h"
+#include "renderer.h"
 
 u32 compile_shader(const char *path, GLenum shader_type) {
     if (shader_type != GL_FRAGMENT_SHADER && shader_type != GL_VERTEX_SHADER) {
@@ -61,4 +62,27 @@ Shader create_shader(const char *vs_path, const char *fs_path) {
     }
 
     return shader;
+}
+
+void shader_uniform_vec4(u32 shader_program, vec4 vec) {
+    glUniform4f(glGetUniformLocation(shader_program, "color"), 
+                vec[0], 
+                vec[1], 
+                vec[2], 
+                vec[3]);
+}
+
+void shader_uniform_color(u32 shader_program, color_rgb color, f32 alpha) {
+    glUniform4f(glGetUniformLocation(shader_program, "color"), 
+                RGB2F(color.r), 
+                RGB2F(color.g), 
+                RGB2F(color.b), 
+                alpha);
+}
+
+void shader_uniform_mat4(u32 shader_program, mat4 mat) {
+    glUniformMatrix4fv(glGetUniformLocation(shader_program, "p"), 
+                       1, 
+                       GL_FALSE, 
+                       (const GLfloat*)mat);
 }

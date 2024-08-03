@@ -62,8 +62,8 @@ int main(int argc, char *argv[]) {
         rrect rect2 = {
             .x = 0 + x,
             .y = 0 + y,
-            .w = 10,
-            .h = 10,
+            .w = 128,
+            .h = 128,
         };
 
         lline line = {
@@ -73,19 +73,19 @@ int main(int argc, char *argv[]) {
             }
         };
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
-//      render_rect_color(renderer, rect2, COLOR_RED, true);
+        clear_screen(COLOR_BLACK);
+
+        render_rect_color(renderer, rect2, COLOR_RED, 0.5f, true);
 //      render_line(renderer, line, COLOR_RED);
-//      render_rect_texture(renderer, rect, tex);
-//      render_rect_texture(renderer, rect3, tex);
+//      render_rect_texture(renderer, rect, tex, 0.5f);
+//      render_rect_texture(renderer, rect3, tex, 0.5f);
         rrect r = {
             .x = 30,
             .y = 30,
             .w = 1,
             .h = 2,
         };
-        render_text(renderer, &font, "quesoconpan", r);
+        render_text(renderer, &font, "quesoconpan asdsadzc zxcvw", r);
 
         SDL_GL_SwapWindow(renderer.window);
     }

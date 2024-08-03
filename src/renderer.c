@@ -88,28 +88,13 @@ void uninit_renderer(rrenderer *renderer) {
     SDL_Quit();
 }
 
-void shader_uniform_vec4(u32 shader_program, color_rgb color) {
-    glUniform4f(glGetUniformLocation(shader_program, "color"), 
-                RGB2F(color.r), 
-                RGB2F(color.g), 
-                RGB2F(color.b), 
-                RGB2F(255));
-}
-
-void shader_uniform_mat4(u32 shader_program, mat4 proj_mat) {
-    glUniformMatrix4fv(glGetUniformLocation(shader_program, "p"), 
-                       1, 
-                       GL_FALSE, 
-                       (const GLfloat*)proj_mat);
-}
-
-void render_line(rrenderer renderer, lline line, color_rgb color) {
+void render_line(rrenderer renderer, lline line, color_rgb color, f32 alpha) {
     u32 indexes[] = {
         0, 1,
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
-    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
+    shader_uniform_color(renderer.shaders[SHADER_BASIC_COLOR].program, color, alpha);
     shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
 
     glBindVertexArray(renderer.vao);
@@ -127,7 +112,7 @@ void render_line(rrenderer renderer, lline line, color_rgb color) {
     glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, NULL);
 }
 
-void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fill) {
+void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, f32 alpha, bool fill) {
     vec3 v[] = {
         {rect.x,        rect.y,        0.0f},
         {rect.x+rect.w, rect.y,        0.0f},
@@ -141,7 +126,7 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_COLOR].program);
-    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_COLOR].program, color); 
+    shader_uniform_color(renderer.shaders[SHADER_BASIC_COLOR].program, color, alpha);
     shader_uniform_mat4(renderer.shaders[SHADER_BASIC_COLOR].program, renderer.ortho_proj_mat); 
 
     glBindVertexArray(renderer.vao);
@@ -159,7 +144,7 @@ void render_rect_color(rrenderer renderer, rrect rect, color_rgb color, bool fil
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 }
 
-void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
+void render_rect_texture(rrenderer renderer, rrect rect, texture tex, f32 alpha) {
     float v[] = {
         rect.x, rect.y, 0.0f, 
         1.0f, 0.0f, 
@@ -178,7 +163,7 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
     };
 
     glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
-    shader_uniform_vec4(renderer.shaders[SHADER_BASIC_TEXTURE].program, COLOR_WHITE); 
+    shader_uniform_color(renderer.shaders[SHADER_BASIC_TEXTURE].program, COLOR_WHITE, alpha); 
     shader_uniform_mat4(renderer.shaders[SHADER_BASIC_TEXTURE].program, renderer.ortho_proj_mat); 
 
     glBindVertexArray(renderer.vao);
@@ -239,4 +224,21 @@ texture load_texture(const char *img_file) {
     printf("texture from image: %s created\n", img_file);
 
     return tex;
+}
+
+void clear_screen(color_rgb clear_color) {
+    glClearColor(clear_color.r, 
+                 clear_color.g, 
+                 clear_color.b, 
+                 1.f);
+    glClear(GL_COLOR_BUFFER_BIT);
+}
+
+vec4s color_to_vec4(color_rgb color, f32 alpha) {
+    return (vec4s) {
+        .r = RGB2F(color.r),
+        .g = RGB2F(color.g),
+        .b = RGB2F(color.b),
+        .a = alpha,
+    };
 }

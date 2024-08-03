@@ -45,7 +45,7 @@ ffont load_font(const char *ttf_file) {
     glGenTextures(1, &bmp_tex.id);
     glBindTexture(GL_TEXTURE_2D, bmp_tex.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, bmp_tex.width, bmp_tex.height, 0, GL_RED, GL_UNSIGNED_BYTE, tmp_bmp);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bmp_tex.width, bmp_tex.height, 0, GL_RED, GL_UNSIGNED_BYTE, tmp_bmp);
     glGenerateMipmap(GL_TEXTURE_2D);
 
     printf("file_size: %zu\n", file_size);
@@ -70,25 +70,15 @@ void render_text(rrenderer renderer, ffont *font, char *text, rrect text_rect) {
                                &text_rect.y, 
                                &q, 
                                1);
-//          float v[] = {
-//              q.x0, q.y0, 0.0f, 
-//              1, 0, 
-//              q.x1, q.y0, 0.0f, 
-//              0, 0, 
-//              q.x0, q.y1, 0.0f, 
-//              1, 1, 
-//              q.x1, q.y1, 0.0f, 
-//              0, 1, 
-//          };
 
             float v[] = {
-                q.x0, q.y0, 0.0f, 
+                q.x0*2, q.y0*2, 0.0f, 
                 q.s0, q.t0, 
-                q.x1, q.y0, 0.0f, 
+                q.x1*2, q.y0*2, 0.0f, 
                 q.s1, q.t0, 
-                q.x0, q.y1, 0.0f, 
+                q.x0*2, q.y1*2, 0.0f, 
                 q.s0, q.t1, 
-                q.x1, q.y1, 0.0f, 
+                q.x1*2, q.y1*2, 0.0f, 
                 q.s1, q.t1, 
 
             };
@@ -99,7 +89,7 @@ void render_text(rrenderer renderer, ffont *font, char *text, rrect text_rect) {
             };
 
             glUseProgram(renderer.shaders[SHADER_BASIC_TEXTURE].program);
-            shader_uniform_vec4(renderer.shaders[SHADER_BASIC_TEXTURE].program, COLOR_WHITE); 
+            shader_uniform_vec4(renderer.shaders[SHADER_BASIC_TEXTURE].program, color_to_vec4(COLOR_WHITE, 1.f).raw); 
             shader_uniform_mat4(renderer.shaders[SHADER_BASIC_TEXTURE].program, renderer.ortho_proj_mat); 
 
             glBindVertexArray(renderer.vao);
