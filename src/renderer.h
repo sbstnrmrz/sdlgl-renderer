@@ -4,7 +4,7 @@
 #include "defs.h"
 #include "shader.h"
 
-#define RGB2F(x) x / 256.f
+#define RGB2F(x) x / 255.f
 
 #define COLOR_RED    (color_rgb) {255, 0, 0}
 #define COLOR_GREEN  (color_rgb) {0, 255, 0}
@@ -14,6 +14,21 @@
 #define COLOR_CYAN   (color_rgb) {0, 255, 255}
 #define COLOR_BLACK  (color_rgb) {0, 0, 0}
 #define COLOR_WHITE  (color_rgb) {255, 255, 255}
+
+typedef struct {
+    SDL_Window    *window;
+    i32           win_w;
+    i32           win_h;
+    SDL_GLContext gl_ctx;
+    Shader        *shaders;
+    size_t        shaders_size;
+    u32           vao;
+    u32           vbo;
+    u32           ebo;
+    bool          initd;
+    mat4          ortho_proj_mat;
+    mat4          perspective_proj_mat;
+} rrenderer; 
 
 typedef struct {
     u8 r;

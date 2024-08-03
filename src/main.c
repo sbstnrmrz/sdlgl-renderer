@@ -10,7 +10,7 @@ int win_h = 600;
 int main(int argc, char *argv[]) {
     rrenderer renderer = init_renderer("window", win_w, win_h);
     texture tex = load_texture("awesomeface.png");
-    load_font("fonts/FreeSans.ttf");
+    ffont font = load_font("fonts/FreeSans.ttf");
 
     while (renderer.initd) {
         SDL_Event event;
@@ -52,6 +52,13 @@ int main(int argc, char *argv[]) {
             .h = 100,
         };
 
+        rrect rect3 = {
+            .x = 50,
+            .y = 50,
+            .w = 100,
+            .h = 100,
+        };
+
         rrect rect2 = {
             .x = 0 + x,
             .y = 0 + y,
@@ -68,9 +75,17 @@ int main(int argc, char *argv[]) {
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-        render_rect_color(renderer, rect2, COLOR_RED, true);
-        render_line(renderer, line, COLOR_RED);
-        render_rect_texture(renderer, rect, tex);
+//      render_rect_color(renderer, rect2, COLOR_RED, true);
+//      render_line(renderer, line, COLOR_RED);
+//      render_rect_texture(renderer, rect, tex);
+//      render_rect_texture(renderer, rect3, tex);
+        rrect r = {
+            .x = 30,
+            .y = 30,
+            .w = 1,
+            .h = 2,
+        };
+        render_text(renderer, &font, "quesoconpan", r);
 
         SDL_GL_SwapWindow(renderer.window);
     }

@@ -41,19 +41,4 @@ typedef struct {
     u32 program;
 } Shader;
 
-typedef struct {
-    SDL_Window    *window;
-    i32           win_w;
-    i32           win_h;
-    SDL_GLContext gl_ctx;
-    Shader        *shaders;
-    size_t        shaders_size;
-    u32           vao;
-    u32           vbo;
-    u32           ebo;
-    bool          initd;
-    mat4          ortho_proj_mat;
-    mat4          pers_proj_mat;
-} rrenderer; 
-
 #endif // DEFS_H

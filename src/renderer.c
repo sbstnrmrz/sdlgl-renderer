@@ -171,6 +171,7 @@ void render_rect_texture(rrenderer renderer, rrect rect, texture tex) {
         0.0f, 1.0f, 
     };
 
+
     u32 indexes[] = {
         0, 1, 2, 
         2, 1, 3,
