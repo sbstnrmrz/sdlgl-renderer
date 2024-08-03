@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "renderer.h"
+#include "font.h"
 
 rrenderer renderer = {0};
 
@@ -9,6 +10,7 @@ int win_h = 600;
 int main(int argc, char *argv[]) {
     rrenderer renderer = init_renderer("window", win_w, win_h);
     texture tex = load_texture("awesomeface.png");
+    load_font("fonts/FreeSans.ttf");
 
     while (renderer.initd) {
         SDL_Event event;
@@ -40,31 +42,21 @@ int main(int argc, char *argv[]) {
         if (state[SDL_SCANCODE_RIGHT]) {
             x += 1;
         }
+
         static f32 x1 = 0;
         static f32 y1 = 0;
         rrect rect = {
-            .x = 0,
-            .y = 0,
+            .x = x1,
+            .y = y1,
             .w = 100,
             .h = 100,
         };
 
-        x1 += 5;
-        y1 += 5;
-//      printf("x: %.2f | y: %.2f\n", x, y);
-//      printf("win_w: %d | win_h: %d\n", renderer.win_w, renderer.win_h);
-        if (x1 <= 0 || x1 >= renderer.win_w) {
-            x1 *= -1; 
-        }
-        if (y1 <= 0 || y1+200 >= renderer.win_h) {
-            y1 *= -1; 
-        }
-
         rrect rect2 = {
             .x = 0 + x,
             .y = 0 + y,
-            .w = 4,
-            .h = 4,
+            .w = 10,
+            .h = 10,
         };
 
         lline line = {
